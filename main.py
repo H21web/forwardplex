@@ -11,10 +11,22 @@ api_id = int(os.getenv("API_ID"))
 api_hash = os.getenv("API_HASH")
 session_name = os.getenv("SESSION_NAME", "anon")
 
-# Parse source channels as a comma-separated list of integers
-source_channel_ids = [
-    int(cid.strip()) for cid in os.getenv("FROM_CHANNEL_IDS").split(",")
-]
+# Dynamic support for single or multiple channel IDs
+from_channel_ids_env = os.getenv("FROM_CHANNEL_IDS")
+if not from_channel_ids_env:
+    raise ValueError("FROM_CHANNEL_IDS environment variable is not set.")
+
+# Split and parse, support both single and multiple channels
+channel_id_strs = [cid.strip() for cid in from_channel_ids_env.split(",") if cid.strip()]
+if not channel_id_strs:
+    raise ValueError("No valid channel IDs found in FROM_CHANNEL_IDS.")
+
+# If only one channel, use int; if multiple, use list of ints
+if len(channel_id_strs) == 1:
+    source_channel_ids = int(channel_id_strs[0])
+else:
+    source_channel_ids = [int(cid) for cid in channel_id_strs]
+
 target_channel_id = int(os.getenv("TO_CHANNEL_ID"))
 
 # Health check HTTP server for Koyeb
